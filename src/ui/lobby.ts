@@ -12,6 +12,14 @@ import { KingsCupUI } from "./kingscup";    // 킹스컵 게임 화면
 import { OneCardUI } from "./onecard";      // 원카드 게임 화면
 import { OldMaidUI } from "./oldmaid";      // 도둑잡기 게임 화면
 import { HoldemUI } from "./holdem";        // 홀덤 게임 화면
+client.onClose = () => {
+  this.gameUI = null;
+  this.room = null;
+  this.myId = null;
+  this.isConnecting = false;
+
+  this.renderRoomForm();
+}; // 지피티가 넣으래
 
 /** 플레이 가능한 게임 목록 (4개 게임 지원을 위한 등록표) */
 const GAMES = [
@@ -220,11 +228,3 @@ export class Lobby {
     });
   }
 }
-client.onClose = () => {
-  this.gameUI = null;
-  this.room = null;
-  this.myId = null;
-  this.isConnecting = false;
-
-  this.renderRoomForm();
-};
