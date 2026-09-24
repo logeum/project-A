@@ -7,7 +7,7 @@
  *
  * 통신 흐름:
  *   클라이언트 --WebSocket--> fetch()에서 업그레이드 수락
- *   --> webSocketMessage()에서 메시지 처리 --> broadcast()로 전원에게 상태 전송
+ *   --> onMessage()에서 메시지 처리 --> broadcast()로 전원에게 상태 전송
  */
 
 import type {
@@ -16,6 +16,8 @@ import type {
   RoomState,
   ServerMessage,
 } from "../src/core/types";
+import type { GameModule } from "../src/core/games/hooks";
+import { createGame } from "./games"; // gameId → 게임 모듈 팩토리
 
 /** 방 인원 상한 (10명 기획에 맞춤) */
 const MAX_PLAYERS = 10;
@@ -38,15 +40,17 @@ export class Room implements DurableObject {
     started: false,
   };
 
+  /** 진행 중인 게임 모듈 (게임별 로직을 담당, 미시작이면 null) */
+  private game: GameModule | null = null;
+
   /**
    * fetch(): 클라이언트의 WebSocket 업그레이드 요청을 수락합니다.
    * DO의 생명주기 메서드입니다.
+   * 방 코드는 클라이언트가 이미 정해서 전송했으므로 여기서는 그대로 사용합니다.
    */
   async fetch(request: Request): Promise<Response> {
-    // URL에서 방 코드 추출 (없으면 새로 생성 — 방 만들기 흐름)
     const url = new URL(request.url);
-    const param = url.searchParams.get("roomId")!;
-    this.state.roomId = param === "new" ? this.generateCode() : param;
+    this.state.roomId = url.searchParams.get("roomId")!;
 
     // WebSocket 연결 수립 (Cloudflare는 서버에서 WebSocketPair로 업그레이드)
     const pair = new WebSocketPair();
@@ -97,17 +101,28 @@ export class Room implements DurableObject {
         }
         this.state.gameId = msg.gameId;
         this.state.started = true;
-        this.broadcastState();
-        // 참고: 실제 게임 룰 초기화(덱 생성, 패 돌리기)는 게임 모듈이 담당합니다.
+        this.broadcastState(); // 1) 먼저 방 상태를 전송해 클라이언트가 게임 화면을 준비하게 함
+        // 2) 게임 모듈 생성 (생성자가 초기 게임 상태를 전송)
+        //    새 게임 추가 시 worker/games/index.ts에 case만 추가하면 됩니다.
+        this.game = createGame(msg.gameId, this.state.players, {
+          broadcast: (state) =>
+            this.broadcast({ type: "game", gameId: msg.gameId, state }),
+          sendTo: (playerId, state) =>
+            this.sendToPlayer(playerId, { type: "private", gameId: msg.gameId, state }),
+        });
         break;
-      case "action":
-        // 게임 진행 액션: 게임 룰 모듈이 처리 (현재는 상태만 확인용으로 에코)
-        // 여기에 각 게임별 로직이 붙는 확장 지점입니다.
+      case "action": {
+        // 게임 진행 액션: 접속한 플레이어 ID를 함께 넘겨 게임 모듈이 검증
+        const session = this.sessions.get(socket);
+        if (session && this.game) {
+          this.game.handleAction(session.player.id, msg.data);
+        }
         break;
+      }
     }
   }
 
-  /** 플레이어를 방에 추가하고 welcome + 전체 상태를 본니다. */
+  /** 플레이어를 방에 추가하고 welcome + 전체 상태를 전송합니다. */
   private addPlayer(socket: WebSocket, name: string, isHost: boolean): void {
     const player: PlayerInfo = {
       id: crypto.randomUUID(), // 연결마다 고유 ID 발급
@@ -134,6 +149,8 @@ export class Room implements DurableObject {
 
     this.sessions.delete(socket);
     this.state.players = this.state.players.filter((p) => p.id !== session.player.id);
+    // 게임 진행 중이면 게임 모듈에도 퇴장을 알려 턴을 정리합니다
+    this.game?.removePlayer(session.player.id);
 
     // 방장이 나갔고 아직 사람이 남아있다면, 가장 먼저 들어온 사람을 방장으로 승계
     if (session.player.isHost && this.state.players.length > 0) {
@@ -147,7 +164,7 @@ export class Room implements DurableObject {
     }
   }
 
-  /** 현재 방 상태를 JSON으로 직렬화해 전원에게 본내는 메서드 */
+  /** 현재 방 상태를 JSON으로 직렬화해 전원에게 전송하는 메서드 */
   private broadcastState(): void {
     this.broadcast({ type: "state", state: this.state });
   }
@@ -155,6 +172,16 @@ export class Room implements DurableObject {
   /** 특정 소켓에만 메시지 전송 */
   private send(socket: WebSocket, msg: ServerMessage): void {
     socket.send(JSON.stringify(msg));
+  }
+
+  /** 플레이어 ID로 소켓을 찾아 개인 메시지 전송 (내 패 등 비공개 정보용) */
+  private sendToPlayer(playerId: string, msg: ServerMessage): void {
+    for (const { socket, player } of this.sessions.values()) {
+      if (player.id === playerId) {
+        socket.send(JSON.stringify(msg));
+        return;
+      }
+    }
   }
 
   /** 접속 중인 모든 소켓에 메시지 전송 */

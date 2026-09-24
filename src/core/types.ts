@@ -13,7 +13,7 @@ export interface PlayerInfo {
   isHost: boolean; // 방장 여부 (방장만 게임 시작 가능)
 }
 
-/** 진행 중인 방의 상태 (서버가 만들어서 모두에게 본내는 "공식 상태") */
+/** 진행 중인 방의 상태 (서버가 만들어서 모두에게 전송하는 "공식 상태") */
 export interface RoomState {
   roomId: string;         // 방 코드 (예: "A1B2C3")
   players: PlayerInfo[];  // 참여자 목록
@@ -66,6 +66,28 @@ export interface StateMsg {
   state: RoomState;
 }
 
+/**
+ * 게임 진행 상태 (started 이후 서버가 전원에게 전송).
+ * state는 게임별 커스텀 타입 (예: KingsCupPublicState)으로,
+ * 클라이언트는 gameId를 보고 어떤 게임 화면을 켤지 결정합니다.
+ */
+export interface GameStateMsg {
+  type: "game";
+  gameId: string;
+  state: unknown;
+}
+
+/**
+ * 개인 전용 상태 (본인에게만 전송).
+ * 다른 플레이어에게는 절대 전송되지 않으므로, 내 패(손패) 같은
+ * 비공개 정보를 담는 데 사용합니다.
+ */
+export interface PrivateStateMsg {
+  type: "private";
+  gameId: string;
+  state: unknown; // 보통 { hand: Card[] } 형태
+}
+
 /** 에러/안내 메시지 */
 export interface ErrorMsg {
   type: "error";
@@ -73,4 +95,9 @@ export interface ErrorMsg {
 }
 
 /** 서버가 볼 수 있는 모든 응답 메시지의 합집합 */
-export type ServerMessage = WelcomeMsg | StateMsg | ErrorMsg;
+export type ServerMessage =
+  | WelcomeMsg
+  | StateMsg
+  | ErrorMsg
+  | GameStateMsg
+  | PrivateStateMsg;

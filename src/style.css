@@ -111,3 +111,169 @@ button:disabled {
   gap: 8px;
   margin-top: 16px;
 }
+
+/* ========== 게임 화면 (킹스 컵) ========== */
+
+/* 게임 테이블 전체 레이아웃 */
+.game-table {
+  width: 100%;
+  max-width: 900px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* 상단 헤더: 킹 진행 상황 + 남은 카드 수 */
+.game-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 1.2rem;
+}
+
+/* 킹 컵 진행 표시 */
+.kings {
+  font-size: 1.4rem;
+}
+
+/* 남은 덱 (카드 뒷면들) */
+.deck-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  justify-content: center;
+}
+
+/* 덱의 카드 뒷면 미리보기 (작게) */
+.card-back-mini {
+  width: 40px;
+  border-radius: 4px;
+}
+
+/* 미션 패널: 방금 뽑힌 카드 + 미션 설명 */
+.mission-panel {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  background: #242424;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+/* 미션 패널 안의 카드 이미지 */
+.mission-card {
+  width: 90px;
+  border-radius: 6px;
+}
+
+/* 뽑힌 카드 히스토리 (최근 순) */
+.revealed-row {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto; /* 넘치면 가로 스크롤 */
+  padding-bottom: 4px;
+}
+
+/* 히스토리 카드 한 장 단위 */
+.revealed-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.revealed-card img {
+  width: 56px;
+  border-radius: 4px;
+}
+
+/* 참여자 목록 패널 */
+.players-panel .players li.current-turn {
+  background: #2e7d32; /* 현재 턴 플레이어 강조 */
+  border-radius: 6px;
+  color: #fff;
+}
+
+/* 하단 푸터: 뽑기 버튼 / 게임 종료 문구 */
+.game-footer {
+  text-align: center;
+}
+
+/* 게임 종료 문구 */
+.finished {
+  font-size: 1.2rem;
+  color: #ffd54f;
+}
+
+/* ========== 공통 게임 요소 (원카드/도둑잡기/홀덤) ========== */
+
+/* 손패 카드 이미지 */
+.hand-card {
+  width: 64px;
+  border-radius: 6px;
+  cursor: pointer; /* 클릭 가능 표시 */
+  transition: transform 0.1s;
+}
+
+/* 손패 카드 호버 효과 */
+.hand-card:hover {
+  transform: translateY(-8px);
+}
+
+/* 내 손패 영역 (가로 나열) */
+.my-hand {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* 원카드: 맨 위 카드 */
+.top-card {
+  width: 110px;
+  border-radius: 8px;
+}
+
+/* 원카드: 맨 위 카드 영역 */
+.top-card-area {
+  text-align: center;
+}
+
+/* 원카드: 공격 누적 배너 (눈에 띄게) */
+.attack-banner {
+  color: #ff5252;
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+/* 탈출/폴드한 플레이어 표시 */
+.players-panel .players li.out {
+  opacity: 0.5;
+  text-decoration: line-through;
+}
+
+/* 홀덤: 커뮤니티 카드 영역 */
+.community-row {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  min-height: 90px;
+}
+
+/* 홀덤: 내 홀카드 영역 */
+.my-hole {
+  text-align: center;
+}
+
+/* 홀덤: 액션 버튼 줄 (체크/콜/벳/폴드) */
+.action-row {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.action-row button {
+  width: auto;
+  padding: 10px 20px;
+}

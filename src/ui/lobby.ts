@@ -3,11 +3,16 @@
  * ---------------
  * 게임 시작 전 단계: 닉네임 입력 → 방 만들기 / 방코드로 참여하기 →
  * 참여자 목록 확인 → 방장이 게임 선택 후 시작.
- * 게임 룰 화면은 별도 모듈로 교체 예정이고, 여기서는 "방" 자체를 관리합니다.
+ * 게임 시작 후에는 mountGame()으로 해당 게임의 화면으로 전환됩니다.
  */
 
 import type { RoomState } from "../core/types";
+import type { GameUI } from "../core/games/hooks";
 import { generateRoomCode, type GameClient } from "../net/client";
+import { KingsCupUI } from "./kingscup";    // 킹스컵 게임 화면
+import { OneCardUI } from "./onecard";      // 원카드 게임 화면
+import { OldMaidUI } from "./oldmaid";      // 도둑잡기 게임 화면
+import { HoldemUI } from "./holdem";        // 홀덤 게임 화면
 
 /** 플레이 가능한 게임 목록 (4개 게임 지원을 위한 등록표) */
 const GAMES = [
@@ -22,6 +27,7 @@ export class Lobby {
   private client: GameClient;     // 서버와 통신하는 소켓 클라이언트
   private myId: string | null = null; // 내 플레이어 ID (welcome 메시지로 수신)
   private room: RoomState | null = null; // 최신 방 상태 (state 메시지로 수신)
+  private gameUI: GameUI | null = null; // 진행 중인 게임 화면 (started 이후 생성)
   private name = "";              // 입력받은 닉네임 (폼 간 이동 시 유지)
 
   constructor(root: HTMLElement, client: GameClient) {
@@ -31,7 +37,7 @@ export class Lobby {
     client.onMessage = (msg) => this.handleMessage(msg);
   }
 
-  /** 화면 시작: 닉네임 입력 화멵만 표시 (소켓 연결은 버튼 클릭 시에 합니다) */
+  /** 화면 시작: 닉네임 입력 화면 표시 (소켓 연결은 버튼 클릭 시에 합니다) */
   start(): void {
     this.renderNameForm();
   }
@@ -44,9 +50,23 @@ export class Lobby {
         this.myId = msg.playerId;
         break;
       case "state":
-        // 방 상태 갱신: 저장하고 대기실 화면을 다시 그립니다
         this.room = msg.state;
-        this.renderWaitingRoom();
+        if (this.room.started) {
+          // 게임 시작됨: 아직 게임 화면이 없으면 해당 게임의 UI를 생성합니다
+          // (서버가 "state"를 먼저, "game" 상태를 나중에 전송하므로 이 순서가 안전합니다)
+          if (!this.gameUI) this.mountGame();
+        } else {
+          // 시작 전: 대기실 화면을 다시 그립니다
+          this.renderWaitingRoom();
+        }
+        break;
+      case "game":
+        // 게임 상태 갱신: 현재 게임 화면에 전달 (서버가 공식 상태를 전송)
+        this.gameUI?.handleGame(msg.state);
+        break;
+      case "private":
+        // 개인 상태(내 패 등): 해당 게임 화면에만 전달
+        this.gameUI?.handlePrivate?.(msg.state);
         break;
       case "error":
         alert(msg.message);
@@ -71,10 +91,7 @@ export class Lobby {
     });
   }
 
-  /**
-   * 2단계 화면: 방 만들기 or 방코드로 참여하기.
-   * 버튼을 눌러야 비로소 소켓에 연결합니다 (makeOrJoin 참조).
-   */
+  /** 2단계 화면: 방 만들기 or 방코드로 참여하기. 버튼을 눌러야 소켓에 연결됩니다. */
   private renderRoomForm(): void {
     this.root.innerHTML = `
       <div class="panel">
@@ -100,7 +117,7 @@ export class Lobby {
   }
 
   /**
-   * 소켓 연결 후 create/join 메시지를 복내는 공통 처리.
+   * 소켓 연결 후 create/join 메시지를 전송하는 공통 처리.
    * @param roomId 방 코드 (새 코드이면 내가 방장이 됨)
    * @param kind   "create" | "join"
    */
@@ -110,6 +127,29 @@ export class Lobby {
       this.client.send({ type: kind, roomId, name: this.name }); // 2) 입장 요청
     } catch {
       alert("서버에 연결하지 못했습니다.");
+    }
+  }
+
+  /**
+   * 게임 화면 생성 (state에서 started가 true일 때 호출).
+   * gameId에 따라 어떤 게임 UI를 켤지 결정합니다.
+   * 새 게임 추가 시 여기에 분기만 추가하면 됩니다.
+   */
+  private mountGame(): void {
+    const args = [this.root, this.client, this.myId] as const;
+    switch (this.room?.gameId) {
+      case "kingscup":
+        this.gameUI = new KingsCupUI(...args);
+        break;
+      case "onecard":
+        this.gameUI = new OneCardUI(...args);
+        break;
+      case "oldmaid":
+        this.gameUI = new OldMaidUI(...args);
+        break;
+      case "holdem":
+        this.gameUI = new HoldemUI(...args);
+        break;
     }
   }
 
