@@ -5,7 +5,7 @@
  * 참여자 목록 확인 → 방장이 게임 선택 후 시작.
  * 게임 시작 후에는 mountGame()으로 해당 게임의 화면으로 전환됩니다.
  */
-
+private isConnecting = false; // 지피티가 알려준거 잘못되면 지우자
 import type { RoomState } from "../core/types";
 import type { GameUI } from "../core/games/hooks";
 import { generateRoomCode, type GameClient } from "../net/client";
@@ -121,13 +121,34 @@ export class Lobby {
    * @param roomId 방 코드 (새 코드이면 내가 방장이 됨)
    * @param kind   "create" | "join"
    */
-  private async makeOrJoin(roomId: string, kind: "create" | "join"): Promise<void> {
-    try {
-      await this.client.connect(roomId);      // 1) 방 코드로 서버 접속
-      this.client.send({ type: kind, roomId, name: this.name }); // 2) 입장 요청
-    } catch {
-      alert("서버에 연결하지 못했습니다.");
-    }
+  private async makeOrJoin(
+  roomId: string,
+  kind: "create" | "join"
+): Promise<void> {
+  if (this.isConnecting) return;
+
+  this.isConnecting = true;
+
+  const buttons = this.root.querySelectorAll("button");
+  buttons.forEach((button) => {
+    (button as HTMLButtonElement).disabled = true;
+  });
+
+  try {
+    await this.client.connect(roomId);
+
+    this.client.send({
+      type: kind,
+      roomId,
+      name: this.name
+    });
+  } catch {
+    this.isConnecting = false;
+    buttons.forEach((button) => {
+      (button as HTMLButtonElement).disabled = false;
+    });
+    alert("서버에 연결하지 못했습니다.");
+  }
   }
 
   /**
