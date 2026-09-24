@@ -78,7 +78,12 @@ export class Room implements DurableObject {
     } catch {
       return this.send(socket, { type: "error", message: "잘못된 메시지 형식입니다." });
     }
-
+if (
+  this.sessions.has(socket) &&
+  (msg.type === "create" || msg.type === "join")
+) {
+  return;
+}
     switch (msg.type) {
       case "create":
         // 방 만들기: 첫 번째 참여자이므로 방장으로 등록
