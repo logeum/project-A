@@ -1,0 +1,113 @@
+/* 전역 스타일 — 카드 게임 느낌의 어두운 테마 */
+
+/* 기본 리셋: 여백 제거 + 박스 크기 계산 방식 통일 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* 페이지 전체 배경과 기본 폰트 */
+body {
+  background: #1a2f1a; /* 카지노 테이블 같은 짙은 녹색 */
+  color: #eee;
+  font-family: system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 가욍 패널 (로비 화면의 카드 모양 컨테이너) */
+.panel {
+  background: #242424;
+  border-radius: 12px;
+  padding: 32px;
+  width: 90%;
+  max-width: 420px;
+  text-align: center;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+/* 제목 */
+h1 {
+  margin-bottom: 16px;
+  font-size: 1.5rem;
+}
+
+/* 보조 설명文字 (방 코드, 상태 메시지 등) */
+.muted {
+  color: #999;
+  font-size: 0.9rem;
+}
+
+/* 입력창 공통 스타일 */
+input {
+  width: 100%;
+  padding: 10px;
+  margin: 8px 0;
+  border: 1px solid #444;
+  border-radius: 6px;
+  background: #111;
+  color: #eee;
+  font-size: 1rem;
+}
+
+/* 버튼 공통 스타일 */
+button {
+  width: 100%;
+  padding: 10px;
+  margin: 8px 0;
+  border: none;
+  border-radius: 6px;
+  background: #2e7d32; /* 녹색 버튼 */
+  color: #fff;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+/* 버튼에 마우스를 올렸을 때 살짝 어두워짐 */
+button:hover {
+  background: #1b5e20;
+}
+
+/* 비활성화된 버튼 (방장 아닌 사람의 시작 버튼 등) */
+button:disabled {
+  background: #444;
+  cursor: not-allowed;
+}
+
+/* 방코드 입력 + 참여하기 버튼을 한 줄에 배치 */
+.join-row {
+  display: flex;
+  gap: 8px;
+}
+
+.join-row input {
+  flex: 1;
+  text-transform: uppercase; /* 방코드는 대문자로 보이게 */
+}
+
+.join-row button {
+  width: auto;
+  padding: 10px 16px;
+}
+
+/* 참여자 목록 */
+.players {
+  list-style: none;
+  margin: 16px 0;
+}
+
+.players li {
+  padding: 6px;
+  border-bottom: 1px solid #333;
+}
+
+/* 게임 선택 버튼 그룹 */
+.games {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* 2열 배치 */
+  gap: 8px;
+  margin-top: 16px;
+}

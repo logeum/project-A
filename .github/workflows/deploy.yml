@@ -1,0 +1,49 @@
+# GitHub Actions 자동 배포 워크플로우
+# -----------------------------------
+# main 브랜치에 push하면 자동으로:
+#   1) 프론트엔드 빌드 (Vite)
+#   2) Cloudflare Pages에 프론트 배포
+#   3) Cloudflare Workers에 서버(Durable Objects) 배포
+name: Deploy
+
+# 배포 트리거: main 브랜치에 push될 때
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      # 1) GitHub 저장소 코드를 가져옵니다
+      - uses: actions/checkout@v4
+
+      # 2) Node.js 환경을 설치합니다 (버전은 package.json의 개발환경과 동일하게)
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      # 3) 의존성 설치 (package-lock.json 기반으로 재현 가능하게)
+      - run: npm ci
+
+      # 4) 프론트엔드 빌드 (결과물은 dist/ 폴터)
+      - run: npm run build
+
+      # 5) Cloudflare Pages에 프론트엔드 배포 (dist 폴터 → project-a 프로젝트)
+      #    CLOUDFLARE_API_TOKEN과 CLOUDFLARE_ACCOUNT_ID는
+      #    GitHub 저장소 Settings → Secrets → Actions에 미리 등록해야 합니다.
+      - name: Deploy frontend to Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist --project-name=project-a
+
+      # 6) Cloudflare Workers에 서버(Durable Objects) 배포 (wrangler.toml 기준)
+      - name: Deploy worker
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy

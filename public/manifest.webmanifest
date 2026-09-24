@@ -1,0 +1,9 @@
+{
+  "name": "project-A",
+  "short_name": "project-A",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1a2f1a",
+  "theme_color": "#1a2f1a",
+  "description": "브라우저에서 즐기는 카드 파티 게임"
+}

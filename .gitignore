@@ -1,0 +1,9 @@
+# 빌드 결과물 (npm run build 생성, Git에 올리지 않음)
+dist/
+# node_modules는 npm install로 설치되므로 Git에 올리지 않음
+node_modules/
+# Wrangler 로컬 개발용 상태 파일
+.wrangler/
+# 환경변수 파일 (비밀번호 등이 들어갈 수 있으므로 비공개)
+.env
+.env.*

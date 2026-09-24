@@ -1,0 +1,16 @@
+# Cloudflare Worker + Durable Objects 설정 파일
+name = "project-a-worker"        # 워커 이름 (대시보드에 표시됨)
+main = "worker/index.ts"         # 워커 진입점 파일
+compatibility_date = "2026-09-24" # 최신 런타임 기능 사용 선언
+
+# Durable Objects 바인딩: 방(ROOM) 하나가 하나의 게임방 역할을 합니다.
+[durable_objects]
+bindings = [
+  { name = "ROOM", class_name = "Room" }
+]
+
+# Durable Object를 처음 배포할 때 필요한 마이그레이션 선언
+# 클래스를 추가/삭제할 때마다 tag 버전을 올려야 합니다.
+[[migrations]]
+tag = "v1"
+new_classes = ["Room"]
