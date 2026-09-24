@@ -5,7 +5,6 @@
  * 참여자 목록 확인 → 방장이 게임 선택 후 시작.
  * 게임 시작 후에는 mountGame()으로 해당 게임의 화면으로 전환됩니다.
  */
-private isConnecting = false; // 지피티가 알려준거 잘못되면 지우자
 import type { RoomState } from "../core/types";
 import type { GameUI } from "../core/games/hooks";
 import { generateRoomCode, type GameClient } from "../net/client";
@@ -23,6 +22,7 @@ const GAMES = [
 ] as const;
 
 export class Lobby {
+  private isConnecting = false;
   private root: HTMLElement;      // 화면을 그릴 컨테이너 (#app)
   private client: GameClient;     // 서버와 통신하는 소켓 클라이언트
   private myId: string | null = null; // 내 플레이어 ID (welcome 메시지로 수신)
