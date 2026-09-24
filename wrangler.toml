@@ -3,6 +3,11 @@ name = "project-a"        # 워커 이름 (대시보드에 표시됨)
 main = "worker/index.ts"         # 워커 진입점 파일
 compatibility_date = "2026-09-24" # 최신 런타임 기능 사용 선언
 
+# Vite로 빌드된 정적 웹사이트 파일을 Worker에서 제공하기 위한 설정
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+
 # Durable Objects 바인딩: 방(ROOM) 하나가 하나의 게임방 역할을 합니다.
 [durable_objects]
 bindings = [
