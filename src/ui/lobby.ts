@@ -211,3 +211,11 @@ export class Lobby {
     });
   }
 }
+client.onClose = () => {
+  this.gameUI = null;
+  this.room = null;
+  this.myId = null;
+  this.isConnecting = false;
+
+  this.renderRoomForm();
+};
