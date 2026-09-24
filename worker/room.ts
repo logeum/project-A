@@ -152,10 +152,27 @@ export class Room implements DurableObject {
     // 게임 진행 중이면 게임 모듈에도 퇴장을 알려 턴을 정리합니다
     this.game?.removePlayer(session.player.id);
 
-    // 방장이 나갔고 아직 사람이 남아있다면, 가장 먼저 들어온 사람을 방장으로 승계
-    if (session.player.isHost && this.state.players.length > 0) {
-      this.state.players[0].isHost = true;
+// 방장이 나갔고 1명 이하만 남았다면 방 종료
+  if (
+    session.player.isHost &&
+    this.state.players.length <= 1
+  ) {
+    for (const { socket: remainingSocket } of this.sessions.values()) {
+      remainingSocket.close(1000, "방장이 퇴장했습니다.");
     }
+
+    this.sessions.clear();
+    this.state.players = [];
+    this.game = null;
+    this.state.started = false;
+    this.state.gameId = null;
+    return;
+  }
+
+  // 방장이 나갔고 사람이 2명 이상 남았다면 방장 승계
+  if (session.player.isHost && this.state.players.length > 0) {
+    this.state.players[0].isHost = true;
+  }
 
     // 방이 비었으면 상태를 그대로 두면 DO가 정리됩니다
     // (DO는 일정 시간 비활성 후 자동으로 소멸)
