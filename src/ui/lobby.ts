@@ -99,7 +99,14 @@ export class Lobby {
         <p class="muted">${this.name} 님, 환영합니다!</p>
         <button id="create-btn">방 만들기</button>
         <div class="join-row">
-          <input id="room-code" placeholder="방코드 6자리" maxlength="6" />
+          <input
+  id="room-code"
+  placeholder="숫자 6자리"
+  maxlength="6"
+  inputmode="numeric"
+  pattern="[0-9]{6}"
+  autocomplete="off"
+/>
           <button id="join-btn">참여하기</button>
         </div>
       </div>
