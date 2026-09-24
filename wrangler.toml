@@ -1,5 +1,5 @@
 # Cloudflare Worker + Durable Objects 설정 파일
-name = 'project-a'        # 워커 이름 (대시보드에 표시됨)
+name = "project-a"        # 워커 이름 (대시보드에 표시됨)
 main = "worker/index.ts"         # 워커 진입점 파일
 compatibility_date = "2026-09-24" # 최신 런타임 기능 사용 선언
 
