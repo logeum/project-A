@@ -8,7 +8,7 @@
  */
 
 /** 캐시 이름 — 게임 버전을 올릴 때마다 이름을 바꾸면 새 캐시로 교체 됨 */
-const CACHE_NAME = "project-a-v2";
+const CACHE_NAME = "project-a-v1";
 
 /** 설치할 때 캐시할 필수 파일들 (나머지는 실행 중에 추가됨) */
 const PRECACHE = ["/", "/index.html", "/manifest.webmanifest"];
