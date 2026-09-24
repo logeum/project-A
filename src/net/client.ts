@@ -16,12 +16,12 @@ import type { ClientMessage, ServerMessage } from "../core/types";
  *  생기기 때문에, 코드 생성은 각 클라이언트가 담당합니다.)
  */
 export function generateRoomCode(): string {
-  const chars = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"; // 혼동되기 쉬운 I,O,0,1 제외
-  const buf = new Uint32Array(6);
-  crypto.getRandomValues(buf); // 암호학적 난수 (공정한 코드 생성)
-  let code = "";
-  for (let i = 0; i < 6; i++) code += chars[buf[i] % chars.length];
-  return code;
+  const buf = new Uint32Array(1);
+  crypto.getRandomValues(buf);
+
+  return (buf[0] % 1_000_000)
+    .toString()
+    .padStart(6, "0");
 }
 
 /** WebSocket 주소를 만듭니다. roomId는 접속하려는 방 코드입니다. */
