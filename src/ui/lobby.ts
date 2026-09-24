@@ -118,7 +118,9 @@ export class Lobby {
     // 방코드로 참여: 입력한 코드로 접속 → join 요청
     this.root.querySelector("#join-btn")!.addEventListener("click", () => {
       const code = (this.root.querySelector("#room-code") as HTMLInputElement).value.trim().toUpperCase();
-      if (code.length !== 6) return alert("방코드는 6자리입니다.");
+      if (!/^\d{6}$/.test(code)) {
+  return alert("방코드는 숫자 6자리입니다.");
+      }
       this.makeOrJoin(code, "join");
     });
   }
